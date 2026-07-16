@@ -4,13 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMART HOME - ESP8266 Control Panel</title>
-    <!-- นำเข้า Font Awesome สำหรับไอคอน -->
+    <!-- นำเข้า Font Awesome สำหรับไอคอนสัญลักษณ์ต่างๆ -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- ส่วนของการตกแต่ง (CSS) --- */
+        /* ==========================================
+           1. CSS STYLING & UI THEME (สไตล์และการตกแต่ง)
+           ========================================== */
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap');
 
+        /* ตั้งค่าพื้นหลังของหน้าเว็บเป็นโทนเข้ม */
         body {
             background-color: #0d1117;
             color: #ffffff;
@@ -22,6 +25,7 @@
             margin: 0;
         }
 
+        /* กล่องคอนเทนเนอร์หลักของแผงควบคุม */
         .container {
             background: linear-gradient(145deg, #161b22, #10141a);
             border: 1px solid #30363d;
@@ -32,13 +36,14 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
+        /* ส่วนหัวข้อเว็บแอป */
         .header {
             text-align: center;
             margin-bottom: 30px;
         }
 
         .header h1 {
-            color: #00f2fe;
+            color: #00f2fe; /* สีฟ้านีออนสว่าง */
             font-size: 24px;
             margin: 0 0 5px 0;
             letter-spacing: 2px;
@@ -51,6 +56,7 @@
             letter-spacing: 1px;
         }
 
+        /* กล่องควบคุมของแต่ละช่องแชนแนล (D1, D2, D5, D6) */
         .channel-card {
             background-color: #21262d;
             border-radius: 12px;
@@ -63,6 +69,7 @@
             transition: 0.3s;
         }
 
+        /* เอฟเฟกต์เรืองแสงเมื่อนำเมาส์ไปชี้ที่การ์ดควบคุม */
         .channel-card:hover {
             border-color: #00f2fe;
             box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
@@ -82,7 +89,24 @@
             text-align: center;
         }
 
-        /* ตกแต่งปุ่ม Toggle Switch */
+        /* พื้นที่แสดงปุ่มสวิตช์และข้อความบอกสถานะ */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ข้อความสถานะ "เปิด" หรือ "ปิด" */
+        .status-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #8b949e;
+            width: 35px;
+            text-align: right;
+            transition: color 0.3s;
+        }
+
+        /* โครงสร้างปุ่ม Toggle Switch */
         .switch {
             position: relative;
             display: inline-block;
@@ -96,6 +120,7 @@
             height: 0;
         }
 
+        /* พื้นหลังของปุ่มสวิตช์ */
         .slider {
             position: absolute;
             cursor: pointer;
@@ -108,6 +133,7 @@
             border-radius: 24px;
         }
 
+        /* ปุ่มวงกลมเล็กๆ ด้านในที่เลื่อนได้ */
         .slider:before {
             position: absolute;
             content: "";
@@ -120,6 +146,7 @@
             border-radius: 50%;
         }
 
+        /* สไตล์เมื่อปุ่มสวิตช์ถูกเปิดใช้งาน */
         input:checked + .slider {
             background-color: #00f2fe;
             box-shadow: 0 0 8px #00f2fe;
@@ -129,7 +156,7 @@
             transform: translateX(22px);
         }
 
-        /* ตกแต่งส่วน Footer ผู้พัฒนา */
+        /* ส่วนท้ายแสดงรายละเอียดผู้พัฒนาระบบ */
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -147,61 +174,74 @@
 </head>
 <body>
 
+    <!-- โครงสร้างหลัก (HTML Containers) -->
     <div class="container">
         <div class="header">
             <h1>SMART HOME</h1>
             <p>ESP8266 IoT Control Panel</p>
         </div>
 
-        <!-- ช่องที่ 1 (D1) -->
+        <!-- แชนแนลควบคุม 1: ช่อง D1 -->
         <div class="channel-card">
             <div class="channel-info">
                 <i class="fas fa-lightbulb"></i>
                 <span>ช่องที่ 1 (D1)</span>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="switchD1" onchange="toggleDevice('D1', this.checked)">
-                <span class="slider"></span>
-            </label>
+            <div class="switch-container">
+                <span id="statusD1" class="status-text">ปิด</span>
+                <label class="switch">
+                    <input type="checkbox" id="switchD1" onchange="toggleDevice('D1', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
 
-        <!-- ช่องที่ 2 (D2) -->
+        <!-- แชนแนลควบคุม 2: ช่อง D2 -->
         <div class="channel-card">
             <div class="channel-info">
                 <i class="fas fa-plug"></i>
                 <span>ช่องที่ 2 (D2)</span>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="switchD2" onchange="toggleDevice('D2', this.checked)">
-                <span class="slider"></span>
-            </label>
+            <div class="switch-container">
+                <span id="statusD2" class="status-text">ปิด</span>
+                <label class="switch">
+                    <input type="checkbox" id="switchD2" onchange="toggleDevice('D2', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
 
-        <!-- ช่องที่ 3 (D5) -->
+        <!-- แชนแนลควบคุม 3: ช่อง D5 -->
         <div class="channel-card">
             <div class="channel-info">
                 <i class="fas fa-tv"></i>
                 <span>ช่องที่ 3 (D5)</span>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="switchD5" onchange="toggleDevice('D5', this.checked)">
-                <span class="slider"></span>
-            </label>
+            <div class="switch-container">
+                <span id="statusD5" class="status-text">ปิด</span>
+                <label class="switch">
+                    <input type="checkbox" id="switchD5" onchange="toggleDevice('D5', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
 
-        <!-- ช่องที่ 4 (D6) -->
+        <!-- แชนแนลควบคุม 4: ช่อง D6 -->
         <div class="channel-card">
             <div class="channel-info">
                 <i class="fas fa-snowflake"></i>
                 <span>ช่องที่ 4 (D6)</span>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="switchD6" onchange="toggleDevice('D6', this.checked)">
-                <span class="slider"></span>
-            </label>
+            <div class="switch-container">
+                <span id="statusD6" class="status-text">ปิด</span>
+                <label class="switch">
+                    <input type="checkbox" id="switchD6" onchange="toggleDevice('D6', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
 
-        <!-- ส่วนของ Footer ที่อัปเดตข้อมูลผู้พัฒนาใหม่ -->
+        <!-- เครดิตผู้พัฒนาระบบ -->
         <div class="footer">
             <div class="developer-title">ผู้พัฒนาระบบ</div>
             ฐาปกร สุขอุ้ม<br>
@@ -210,51 +250,85 @@
         </div>
     </div>
 
-    <!-- --- ส่วนของการเชื่อมต่อ Firebase (JavaScript) --- -->
+    <!-- ==========================================
+       2. JAVASCRIPT & FIREBASE INTEGRATION
+       ========================================== -->
     <script type="module">
+        // นำเข้าโมดูล Firebase SDK v10 (แบบ CDN)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // ⚠️ นำ Firebase Config ของโปรเจกต์คุณมาใส่ตรงนี้เหมือนเดิมนะครับ
+        // กำหนดค่าคอนฟิกูเรชันของโปรเจกต์ Firebase ของคุณ
         const firebaseConfig = {
-             apiKey: "AIzaSyByff94H7Sit77uKwG1qMtMm0gFs1dD4W0",
-  authDomain: "planning-with-ai-794ae.firebaseapp.com",
-  databaseURL: "https://planning-with-ai-794ae-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "planning-with-ai-794ae",
-  storageBucket: "planning-with-ai-794ae.firebasestorage.app",
-  messagingSenderId: "948486662284",
-  appId: "1:948486662284:web:9668c69c16326bc75633a9"
+            apiKey: "AIzaSyByff94H7Sit77uKwG1qMtMm0gFs1dD4W0",
+            authDomain: "planning-with-ai-794ae.firebaseapp.com",
+            databaseURL: "https://planning-with-ai-794ae-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "planning-with-ai-794ae",
+            storageBucket: "planning-with-ai-794ae.firebasestorage.app",
+            messagingSenderId: "948486662284",
+            appId: "1:948486662284:web:9668c69c16326bc75633a9"
         };
 
+        // เริ่มต้นการใช้งานแอปพลิเคชันและฐานข้อมูล Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        /**
+         * ฟังก์ชัน: toggleDevice
+         * หน้าที่: อัปเดตค่าสถานะไปยัง Firebase เมื่อกดสวิตช์บนเว็บ
+         * @param {string} pin - รหัสขาพินควบคุม เช่น 'D1', 'D2'
+         * @param {boolean} status - สถานะเช็คบล็อก true (เปิด) / false (ปิด)
+         */
         window.toggleDevice = function(pin, status) {
             const value = status ? 1 : 0; 
+            // เขียนข้อมูลไปยัง Path: SmartHome/ชื่อพิน เช่น SmartHome/D1
             set(ref(db, 'SmartHome/' + pin), value)
-                .then(() => {
-                    console.log(`ส่งคำสั่งไปยัง ${pin} สำเร็จ: ค่า ${value}`);
-                })
                 .catch((error) => {
-                    console.error("เกิดข้อผิดพลาด: ", error);
-                    alert("ไม่สามารถเชื่อมต่อฐานข้อมูลได้");
+                    console.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล: ", error);
+                    alert("ไม่สามารถบันทึกข้อมูลได้ กรุณาตรวจสอบกฎกติกาความปลอดภัย (Rules) บนระบบ Firebase Console");
                 });
         };
 
-        function listenToDevice(pin, switchId) {
+        /**
+         * ฟังก์ชัน: listenToDevice
+         * หน้าที่: ดึงข้อมูลและรับฟังความเปลี่ยนแปลงจาก Firebase มาปรับแต่งปุ่มและข้อความสถานะบนแอปแบบเรียลไทม์
+         * @param {string} pin - รหัสพินฐานข้อมูล
+         * @param {string} switchId - id ของแท็ก input switch
+         * @param {string} statusId - id ของแท็กแสดงข้อความสถานะ
+         */
+        function listenToDevice(pin, switchId, statusId) {
             const deviceRef = ref(db, 'SmartHome/' + pin);
+            
+            // ดักฟังค่าของพินอุปกรณ์เมื่อมีการเปลี่ยนแปลง
             onValue(deviceRef, (snapshot) => {
                 const data = snapshot.val();
+                
                 if(data !== null) {
-                    document.getElementById(switchId).checked = (data === 1);
+                    const isChecked = (data === 1);
+                    
+                    // อัปเดตสลักการติ๊กถูกของแท็ก Switch
+                    document.getElementById(switchId).checked = isChecked;
+                    
+                    // ปรับเปลี่ยนข้อความและสีตัวอักษรของสถานะให้สอดคล้อง
+                    const statusText = document.getElementById(statusId);
+                    if (isChecked) {
+                        statusText.innerText = "เปิด";
+                        statusText.style.color = "#00f2fe"; // เปลี่ยนข้อความ "เปิด" เป็นสีฟ้านีออน
+                    } else {
+                        statusText.innerText = "ปิด";
+                        statusText.style.color = "#8b949e"; // เปลี่ยนข้อความ "ปิด" เป็นสีเทาอ่อน
+                    }
                 }
+            }, (error) => {
+                console.error("ไม่สามารถโหลดหรือดักฟังค่าข้อมูลได้: ", error);
             });
         }
 
-        listenToDevice('D1', 'switchD1');
-        listenToDevice('D2', 'switchD2');
-        listenToDevice('D5', 'switchD5');
-        listenToDevice('D6', 'switchD6');
+        // เริ่มต้นเปิดระบบฟังค่าสถานะอุปกรณ์ทั้ง 4 ช่องสัญญาณ
+        listenToDevice('D1', 'switchD1', 'statusD1');
+        listenToDevice('D2', 'switchD2', 'statusD2');
+        listenToDevice('D5', 'switchD5', 'statusD5');
+        listenToDevice('D6', 'switchD6', 'statusD6');
     </script>
 </body>
 </html>
