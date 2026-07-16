@@ -118,6 +118,28 @@
         input:checked + .slider:before {
             transform: translateX(26px);
         }
+
+        /* ส่วนแสดงเครดิตผู้พัฒนา (Developer Credit) */
+        .developer-credit {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #30363d; /* เส้นแบ่งบางๆ ด้านบน */
+            text-align: center;
+            color: #8b949e;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .developer-credit .title {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .developer-credit p {
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -173,15 +195,24 @@
                 <span class="slider"></span>
             </label>
         </div>
+
+        <!-- ส่วนผู้พัฒนาระบบ -->
+        <div class="developer-credit">
+            <div class="title">ผู้พัฒนาระบบ</div>
+            <p>ครูวิทยากร วรรณา</p>
+            <p>แผนกอิเล็กทรอนิกส์</p>
+            <p>วิทยาลัยสารพัดช่างศรีสะเกษ</p>
+        </div>
+
     </div>
 
-    <!-- นำเข้า Firebase SDK (เวอร์ชัน 10 แบบ Modular) -->
+    <!-- นำเข้า Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         // ==========================================
-        // ตั้งค่าคอนฟิก Firebase ของคุณที่นี่ (นำมาจาก Firebase Console)
+        // ตั้งค่าคอนฟิก Firebase ของคุณที่นี่
         // ==========================================
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
@@ -193,39 +224,30 @@
             appId: "YOUR_APP_ID"
         };
 
-        // เริ่มต้นการทำงานของ Firebase และ Database
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-
-        // รายชื่ออุปกรณ์ (อ้างอิงกับ ID ของ Checkbox และ Key ใน Database)
         const devices = ['ch1', 'ch2', 'ch3', 'ch4'];
 
-        // ฟังก์ชันอ่านค่าจาก Firebase แบบ Real-time ทันทีที่โหลดหน้าเว็บหรือมีคนอื่นกด
         devices.forEach(device => {
             const deviceRef = ref(db, 'devices/' + device);
             onValue(deviceRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data !== null) {
-                    // ปรับสถานะสวิตช์หน้าเว็บให้ตรงกับในฐานข้อมูล
                     document.getElementById(device).checked = data;
                 }
             });
         });
 
-        // ฟังก์ชันส่งค่าขึ้น Firebase เมื่อเรากดคลิกที่สวิตช์บนหน้าเว็บ
-        // เราเปิดให้ฟังก์ชันนี้เข้าถึงได้จากภายนอก (Global Scope) เพราะเราใช้ใน attribute 'onchange'
         window.toggleDevice = function(deviceId) {
             const isChecked = document.getElementById(deviceId).checked;
             const deviceRef = ref(db, 'devices/' + deviceId);
             
-            // สั่งอัปเดตค่าลง Firebase
             set(deviceRef, isChecked)
                 .then(() => {
                     console.log(`${deviceId} อัปเดตเป็น ${isChecked}`);
                 })
                 .catch((error) => {
                     console.error("เกิดข้อผิดพลาดในการอัปเดตข้อมูล:", error);
-                    // หากขัดข้อง ให้คืนค่าสวิตช์กลับ
                     document.getElementById(deviceId).checked = !isChecked;
                 });
         };
