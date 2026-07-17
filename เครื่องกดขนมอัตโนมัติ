@@ -1,0 +1,210 @@
+/**
+ * ฟังก์ชันนี้ทำหน้าที่เตรียมความพร้อมให้กับ Google Sheet
+ * โดยการสร้างหัวคอลัมน์ (Headers) และจัดรูปแบบให้สวยงาม
+ */
+function setupVendingMachineSheet() {
+  // 1. เข้าถึง Sheet ปัจจุบันที่กำลังเปิดอยู่
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  
+  // 2. กำหนดชื่อหัวข้อ (Headers) ที่เราออกแบบไว้
+  var headers = [
+    "Date_Time (วันที่และเวลา)", 
+    "Machine_ID (รหัสตู้)", 
+    "Transaction_Type (รายรับ/รายจ่าย)", 
+    "Description (รายละเอียด)", 
+    "Amount (จำนวนเงิน)", 
+    "Notes (หมายเหตุ)"
+  ];
+  
+  // 3. นำหัวข้อไปใส่ในแถวที่ 1 ตั้งแต่คอลัมน์ A ถึง F
+  // getRange(แถวเริ่มต้น, คอลัมน์เริ่มต้น, จำนวนแถว, จำนวนคอลัมน์)
+  var headerRange = sheet.getRange(1, 1, 1, headers.length);
+  headerRange.setValues([headers]);
+  
+  // 4. จัดรูปแบบให้หัวตารางดูอ่านง่าย
+  headerRange.setFontWeight("bold"); // ทำตัวหนา
+  headerRange.setBackground("#4CAF50"); // ใส่สีพื้นหลังเป็นสีเขียว
+  headerRange.setFontColor("white"); // ตัวอักษรสีขาว
+  headerRange.setHorizontalAlignment("center"); // จัดกึ่งกลาง
+  
+  // 5. ตรึงแถวแรกไว้ (Freeze) เวลาเลื่อนดูข้อมูลเยอะๆ หัวตารางจะได้ไม่หายไป
+  sheet.setFrozenRows(1);
+  
+  // 6. ปรับขนาดคอลัมน์ให้พอดีกับข้อความอัตโนมัติ
+  for (var i = 1; i <= headers.length; i++) {
+    sheet.autoResizeColumn(i);
+  }
+}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบันทึกรายรับ-รายจ่าย ตู้กดขนม</title>
+    
+    <!-- นำเข้าฟอนต์ภาษาไทย 'Prompt' เพื่อความสวยงาม -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- นำเข้า Bootstrap 5 สำหรับจัดระเบียบหน้าเว็บให้เป็น Responsive -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- นำเข้า SweetAlert2 สำหรับทำ Pop-up แจ้งเตือนสวยๆ -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- ส่วนของการตกแต่งด้วย CSS -->
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f0f2f5; /* สีพื้นหลังโทนสบายตา */
+        }
+        .form-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1); /* เพิ่มเงาให้กล่องฟอร์มดูลอยขึ้นมา */
+        }
+        .app-title {
+            color: #2c3e50;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .btn-submit {
+            background-color: #4CAF50; /* สีเขียวสื่อถึงการเงิน/การบันทึกสำเร็จ */
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            width: 100%;
+            border-radius: 8px;
+        }
+        .btn-submit:hover {
+            background-color: #45a049;
+        }
+        /* ตอนกำลังโหลดข้อมูล จะให้ปุ่มจางลงนิดหน่อย */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="form-container">
+            <h2 class="app-title">🏪 บันทึกรายรับ-รายจ่าย ตู้กดขนม</h2>
+            
+            <!-- เริ่มต้นแบบฟอร์ม -->
+            <form id="vendingForm">
+                
+                <!-- 1. วันที่และเวลา (Date_Time) -->
+                <div class="mb-3">
+                    <label for="dateTime" class="form-label">วันที่และเวลา</label>
+                    <input type="datetime-local" class="form-control" id="dateTime" name="Date_Time" required>
+                </div>
+
+                <!-- 2. รหัสตู้ (Machine_ID) -->
+                <div class="mb-3">
+                    <label for="machineId" class="form-label">รหัสตู้ (Machine ID)</label>
+                    <input type="text" class="form-control" id="machineId" name="Machine_ID" placeholder="เช่น VM-001" required>
+                </div>
+
+                <!-- 3. ประเภทรายการ (Transaction_Type) -->
+                <div class="mb-3">
+                    <label for="transactionType" class="form-label">ประเภทรายการ</label>
+                    <select class="form-select" id="transactionType" name="Transaction_Type" required>
+                        <option value="" selected disabled>-- เลือกประเภท --</option>
+                        <option value="รายรับ">รายรับ (เงินเข้า)</option>
+                        <option value="รายจ่าย">รายจ่าย (เงินออก)</option>
+                    </select>
+                </div>
+
+                <!-- 4. รายละเอียด (Description) -->
+                <div class="mb-3">
+                    <label for="description" class="form-label">รายละเอียด</label>
+                    <input type="text" class="form-control" id="description" name="Description" placeholder="เช่น ขายขนมขบเคี้ยว, จ่ายค่าไฟ" required>
+                </div>
+
+                <!-- 5. จำนวนเงิน (Amount) -->
+                <div class="mb-3">
+                    <label for="amount" class="form-label">จำนวนเงิน (บาท)</label>
+                    <input type="number" step="0.01" class="form-control" id="amount" name="Amount" placeholder="0.00" required>
+                </div>
+
+                <!-- 6. หมายเหตุ (Notes) -->
+                <div class="mb-4">
+                    <label for="notes" class="form-label">หมายเหตุ (ถ้ามี)</label>
+                    <textarea class="form-control" id="notes" name="Notes" rows="2" placeholder="ข้อมูลเพิ่มเติม..."></textarea>
+                </div>
+
+                <!-- ปุ่มกดส่งข้อมูล -->
+                <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">💾 บันทึกข้อมูล</button>
+                
+            </form>
+        </div>
+    </div>
+
+    <!-- ส่วนของการจัดการด้วย JavaScript -->
+    <script>
+        // กำหนด URL ของ Google Apps Script ที่คุณจะนำมาใส่ในภายหลัง
+        const SCRIPT_URL = "วาง_URL_ของ_GOOGLE_APPS_SCRIPT ที่นี่";
+
+        // ตั้งค่าให้ช่อง 'วันที่และเวลา' แสดงเวลาปัจจุบันอัตโนมัติเมื่อเปิดหน้าเว็บ
+        window.addEventListener('load', () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('dateTime').value = now.toISOString().slice(0,16);
+        });
+
+        // ดักจับเหตุการณ์เมื่อมีการกดปุ่ม Submit (ส่งฟอร์ม)
+        const form = document.getElementById('vendingForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', e => {
+            e.preventDefault(); // ป้องกันไม่ให้หน้าเว็บรีเฟรช
+
+            // แสดงหน้าต่างโหลดให้ผู้ใช้ทราบว่าระบบกำลังทำงาน
+            submitBtn.classList.add('loading');
+            submitBtn.innerHTML = 'กำลังบันทึกข้อมูล... ⏳';
+
+            // ดึงข้อมูลทั้งหมดจากฟอร์ม
+            let formData = new FormData(form);
+
+            // ส่งข้อมูลไปยัง Google Apps Script
+            fetch(SCRIPT_URL, { method: 'POST', body: formData })
+                .then(response => {
+                    // เมื่อบันทึกสำเร็จ ให้แสดง Pop-up แจ้งเตือน
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'บันทึกสำเร็จ!',
+                        text: 'ข้อมูลของคุณถูกบันทึกลงในระบบเรียบร้อยแล้ว',
+                        confirmButtonColor: '#4CAF50'
+                    });
+                    form.reset(); // ล้างข้อมูลในฟอร์ม
+                    
+                    // เซ็ตเวลาปัจจุบันใหม่อีกครั้งหลังล้างฟอร์ม
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    document.getElementById('dateTime').value = now.toISOString().slice(0,16);
+                })
+                .catch(error => {
+                    // กรณีเกิดข้อผิดพลาด
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        text: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง หรือตรวจสอบ SCRIPT_URL',
+                        confirmButtonColor: '#d33'
+                    });
+                    console.error('Error!', error.message);
+                })
+                .finally(() => {
+                    // คืนค่าปุ่มให้กลับมาเป็นเหมือนเดิม
+                    submitBtn.classList.remove('loading');
+                    submitBtn.innerHTML = '💾 บันทึกข้อมูล';
+                });
+        });
+    </script>
+</body>
+</html>
