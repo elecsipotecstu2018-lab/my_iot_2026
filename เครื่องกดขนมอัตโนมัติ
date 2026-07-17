@@ -149,7 +149,7 @@ function setupVendingMachineSheet() {
     <!-- ส่วนของการจัดการด้วย JavaScript -->
     <script>
         // กำหนด URL ของ Google Apps Script ที่คุณจะนำมาใส่ในภายหลัง
-        const SCRIPT_URL = "วาง_URL_ของ_GOOGLE_APPS_SCRIPT ที่นี่";
+        const SCRIPT_URL ="https://script.google.com/macros/s/AKfycbyXXXXXXXXXXXXXXXX/exec";
 
         // ตั้งค่าให้ช่อง 'วันที่และเวลา' แสดงเวลาปัจจุบันอัตโนมัติเมื่อเปิดหน้าเว็บ
         window.addEventListener('load', () => {
