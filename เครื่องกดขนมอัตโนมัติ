@@ -172,7 +172,7 @@ function setupVendingMachineSheet() {
             // ดึงข้อมูลทั้งหมดจากฟอร์ม
             let formData = new FormData(form);
 
-            // ส่งข้อมูลไปยัง Google Apps Script
+            // https://script.google.com/macros/s/AKfycbwCCjgMawBKtPEOAiLGd0_1YObymZgV89TbXg1Wkc2r5coI8Nr5ZJAaGJe_8SwUSpGyYw/exec
             fetch(SCRIPT_URL, { method: 'POST', body: formData })
                 .then(response => {
                     // เมื่อบันทึกสำเร็จ ให้แสดง Pop-up แจ้งเตือน
